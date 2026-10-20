@@ -1,0 +1,60 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, pgsql]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: leave
+          POSTGRES_PASSWORD: leave
+          POSTGRES_DB: leave_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U leave"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, pdo_sqlite
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Code style
+        if: matrix.database == 'sqlite'
+        run: vendor/bin/pint --test
+
+      - name: Prepare app
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests (${{ matrix.database }})
+        env:
+          DB_CONNECTION: ${{ matrix.database }}
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: ${{ matrix.database == 'pgsql' && 'leave_test' || ':memory:' }}
+          DB_USERNAME: leave
+          DB_PASSWORD: leave
+          DB_URL: ""
+        run: php artisan test
