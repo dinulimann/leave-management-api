@@ -2,6 +2,8 @@
 
 [![tests](https://github.com/dinulimann/leave-management-api/actions/workflows/tests.yml/badge.svg)](https://github.com/dinulimann/leave-management-api/actions/workflows/tests.yml)
 
+![Leave Management REST API](docs/cover.png)
+
 A REST API for employee leave: employees request time off, their manager approves or rejects it, and balances are kept per leave type and year. Built with **Laravel 13**, **Sanctum** token auth and **PostgreSQL**, with 20 tests that run against both SQLite and PostgreSQL in CI.
 
 The interesting part is not the CRUD but the rules that HR systems usually get wrong:
